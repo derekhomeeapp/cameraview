@@ -121,15 +121,22 @@ class Camera2 extends CameraViewImpl {
 
         @Override
         public void onPrecaptureRequired() {
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            setState(STATE_PRECAPTURE);
-            try {
-                mCaptureSession.capture(mPreviewRequestBuilder.build(), this, null);
+            if (mPreviewRequestBuilder != null)
+            {
+
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                        CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
-            } catch (CameraAccessException e) {
-                Log.e(TAG, "Failed to run precapture sequence.", e);
+                        CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+                setState(STATE_PRECAPTURE);
+                try {
+                    if (mCaptureSession != null)
+                    {
+                        mCaptureSession.capture(mPreviewRequestBuilder.build(), this, null);
+                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                                CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
+                    }
+                } catch (CameraAccessException e) {
+                    Log.e(TAG, "Failed to run precapture sequence.", e);
+                }
             }
         }
 
@@ -610,16 +617,21 @@ class Camera2 extends CameraViewImpl {
                             mDisplayOrientation * (mFacing == Constants.FACING_FRONT ? 1 : -1) +
                             360) % 360);
             // Stop preview and capture a still picture.
-            mCaptureSession.stopRepeating();
-            mCaptureSession.capture(captureRequestBuilder.build(),
-                    new CameraCaptureSession.CaptureCallback() {
-                        @Override
-                        public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                @NonNull CaptureRequest request,
-                                @NonNull TotalCaptureResult result) {
-                            unlockFocus();
-                        }
-                    }, null);
+
+            if (mCaptureSession != null)
+            {
+
+                mCaptureSession.stopRepeating();
+                mCaptureSession.capture(captureRequestBuilder.build(),
+                        new CameraCaptureSession.CaptureCallback() {
+                            @Override
+                            public void onCaptureCompleted(@NonNull CameraCaptureSession session,
+                                                           @NonNull CaptureRequest request,
+                                                           @NonNull TotalCaptureResult result) {
+                                unlockFocus();
+                            }
+                        }, null);
+            }
         } catch (CameraAccessException e) {
             Log.e(TAG, "Cannot capture a still picture.", e);
         }
